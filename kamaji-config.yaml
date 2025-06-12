@@ -1,0 +1,51 @@
+#cloud-config
+
+hostname: kamaji-{{ trunc 4 .MachineID }}
+
+users:
+- name: kairos
+  passwd: kairos
+  groups:
+  - admin
+  ssh_authorized_keys:
+  - github:jimmykarily
+
+k3s:
+  enabled: true
+
+write_files:
+- path: /var/lib/rancher/k3s/server/manifests/kamaji.yaml
+  permissions: "0644"
+  content: |
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: kamaji
+        ---
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: cert-manager
+        ---
+        apiVersion: helm.cattle.io/v1
+        kind: HelmChart
+        metadata:
+          name: cert-manager
+          namespace: cert-manager
+        spec:
+          repo: https://charts.jetstack.io 
+          chart: cert-manager
+          targetNamespace: cert-manager
+          valuesContent: |-
+            installCRDs: true
+
+        ---
+        apiVersion: helm.cattle.io/v1
+        kind: HelmChart
+        metadata:
+          name: kamaji
+          namespace: kamaji
+        spec:
+          repo: https://clastix.github.io/charts
+          chart: kamaji
+          targetNamespace: kamaji
