@@ -1,0 +1,41 @@
+#cloud-config
+
+debug: true
+
+install:
+  auto: true
+  force: true
+
+strict: true
+
+stages:
+  initramfs:
+  - name: pre-kubeadm
+    commands:
+    - ln -s /etc/kubernetes/admin.conf /run/kubeconfig
+    sysctl:
+      kernel.panic: "10"
+      kernel.panic_on_oops: "1"
+      vm.overcommit_memory: "1"
+
+users:
+- name: kairos
+  passwd: kairos
+  groups:
+  - admin
+  #ssh_authorized_keys:
+  #- github:jimmykarily
+
+cluster:
+  cluster_token: <value_from_kamaji>
+  control_plane_host: <value_from_kamaji>
+  role: worker
+  ### Customize the join configuration according to your needs
+  config: |
+    joinConfiguration:
+      discovery:
+        bootstrapToken:
+          apiServerEndpoint: <value_from_kamaji>
+          caCertHashes:
+          - <value_from_kamaji>
+          token: <value_from_kamaji>
