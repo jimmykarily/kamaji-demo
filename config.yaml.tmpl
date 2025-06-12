@@ -1,5 +1,7 @@
 #cloud-config
 
+hostname: "kairos-{{ trunc 4 .MachineID }}"
+
 debug: true
 
 install:

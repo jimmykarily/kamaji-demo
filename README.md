@@ -31,15 +31,20 @@ docker run --rm -it \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v $PWD/build:/build \
   quay.io/kairos/auroraboot:latest \
-    --debug build-iso --cloud-config /config.yaml --output /build  docker://quay.io/jimmykarily/kairos-kubeadm:v0.0.1
+    --debug build-iso --output /build  docker://quay.io/jimmykarily/kairos-kubeadm:v0.0.1
 ```
 
 (use the image you've selected or built in the previous step)
 
-If you'd like to embed the Kairos config in the image (see the step below), you can also pass this argument:
+If you'd like to embed the Kairos config in the image (see the step below), you can build with:
 
 ```
-  -v $PWD/config.yaml:/config.yaml
+docker run --rm -it \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v $PWD/config.yaml:/config.yaml \
+  -v $PWD/build:/build \
+  quay.io/kairos/auroraboot:latest \
+    --debug build-iso --cloud-config /config.yaml --output /build  docker://quay.io/jimmykarily/kairos-kubeadm:v0.0.1
 ```
 
 > [!IMPORTANT]
