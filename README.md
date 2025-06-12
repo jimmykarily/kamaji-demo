@@ -28,7 +28,6 @@ Choose a tag here: https://quay.io/repository/jimmykarily/kairos-kubeadm
 
 ```bash
 docker run --rm -it \
-  -v $PWD/config.yaml:/config.yaml \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v $PWD/build:/build \
   quay.io/kairos/auroraboot:latest \
@@ -36,6 +35,15 @@ docker run --rm -it \
 ```
 
 (use the image you've selected or built in the previous step)
+
+If you'd like to embed the Kairos config in the image (see the step below), you can also pass this argument:
+
+```
+  -v $PWD/config.yaml:/config.yaml
+```
+
+> [!IMPORTANT]
+> This will embed the connection details too, which means the image will only be useful for one specific cluster.
 
 ## Create a Kamaji cluster
 
