@@ -27,6 +27,6 @@ RUN /setup-kube-admin.sh
 RUN rm /setup-kube-admin.sh
 
 COPY --from=kairos-init /kairos-init /kairos-init
-RUN /kairos-init -l debug --version VERSION
+RUN /kairos-init -l debug --version $VERSION
 RUN /kairos-init validate
 RUN rm /kairos-init
