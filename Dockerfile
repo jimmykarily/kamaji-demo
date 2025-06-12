@@ -27,7 +27,6 @@ RUN /setup-kube-admin.sh
 RUN rm /setup-kube-admin.sh
 
 COPY --from=kairos-init /kairos-init /kairos-init
-RUN /kairos-init -l debug -s install -m "${MODEL}" -v "${VARIANT}" -t "${TRUSTED_BOOT}" -k "${KUBERNETES_DISTRO}" --k8sversion "${KUBERNETES_VERSION}" --version "${VERSION}"
-RUN /kairos-init -l debug -s init -m "${MODEL}" -v "${VARIANT}" -t "${TRUSTED_BOOT}" -k "${KUBERNETES_DISTRO}" --k8sversion "${KUBERNETES_VERSION}" --version "${VERSION}"
+RUN /kairos-init -l debug --version VERSION
 RUN /kairos-init validate
 RUN rm /kairos-init
