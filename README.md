@@ -205,6 +205,7 @@ If something doesn't work (e.g. the worker not connecting to the cluster or not 
 
 ## Tasks (TODOs)
 
+- Create a pipeline to generate also an ISO whenever we tag main (not just a container image) so people don't have to run auroraboot locally.
 - Implement a dockerfile for a kube-admin enabled Kairos based on: https://github.com/clastix/kamaji-kairos (with kairos-init instead of Earthly)
 - Use the above Kairos to create both ISO and raw image artifacts.
 - Try the idea in this video with the above artifacts: https://www.youtube.com/watch?v=LERzvNzQimc
