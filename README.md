@@ -181,6 +181,14 @@ Create a VM and boot the ISO file you created in the first step. When it boots, 
 
 Check the kamaji interface to see the worker connecting and becoming ready. You can get your kubeconfig  from the kamaji interface and start talking to your new cluster.
 
+## Deploy cilium CNI
+
+Your worker won't become "Ready" until you got a [Container Network Interface (CNI)](https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/) configured.
+
+If you used clastix kamaji instance, you just had to enable the cilium add-on from the web interface.
+If you deployed your own kamaji instance, you need to deploy cilium manually on the worker.
+Follow the instructions here: https://docs.cilium.io/en/stable/gettingstarted/k8s-install-default/#install-the-cilium-cli
+
 ## Debugging
 
 If something doesn't work (e.g. the worker not connecting to the cluster or not becoming "Ready"), there are a number places in the worker where you should look for helpful logs:
