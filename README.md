@@ -52,19 +52,126 @@ docker run --rm -it \
 
 ## Create a Kamaji cluster
 
-Either deploy [kamaji on your own infrastructure](https://kamaji.clastix.io/getting-started/) or create an account on the hosted service: https://console.clastix.cloud
+There are 2 ways to get access to a kamaji instance. See the next 2 sections for each one.
 
-From there create a cluster and make sure you've added the cilim addon, otherwise your workers won't get a proper network configuration to connect to the cluster.
+### Option 1: Using console.clastix.cloud
 
-## Create the Kairos config
+There is a free instance of kamaji running at: https://console.clastix.cloud
+Create an account, then create a cluster and make sure you've added the cilium add-on,
+otherwise your workers won't get a proper network configuration to connect to the cluster.
 
-First, find the values needed to populate the kairos configuration by clicking on "Add" button in the "List of Nodes" section in the Kamaji interface. This will open a modal showing you:
+### Option 2: Deploying your own instance
+
+You can follow the documentation: [kamaji on your own infrastructure](https://kamaji.clastix.io/getting-started/) or you can spin up a kamaji server using Kairos.
+You can use the released Kairos artifacts to create a cluster. You don't need a kubeadm cluster, k3s and k0s will do. Use a config like the `kamaji-config.yaml` from this repository,
+making sure you adapt the users section, to include your own SSH keys.
+
+After the cluster is up and running, create a "tenant control plane" as per the docs: https://kamaji.clastix.io/getting-started/kamaji-generic/#tenant-control-plane
+
+Here is an example manifest:
+
+```yaml
+apiVersion: kamaji.clastix.io/v1alpha1
+kind: TenantControlPlane
+metadata:
+  name: mycluster
+  namespace: default
+  labels:
+    tenant.clastix.io: mycluster
+spec:
+  dataStore: default
+  controlPlane:
+    deployment:
+      replicas: 3
+      additionalMetadata:
+        labels:
+          tenant.clastix.io: mycluster
+      extraArgs:
+        apiServer: []
+        controllerManager: []
+        scheduler: []
+      resources: {}
+    service:
+      additionalMetadata:
+        labels:
+          tenant.clastix.io: mycluster
+      serviceType: LoadBalancer
+  kubernetes:
+    version: v1.30.2
+    kubelet:
+      cgroupfs: systemd
+    admissionControllers:
+      - ResourceQuota
+      - LimitRanger
+  networkProfile:
+    port: 8000
+    certSANs:
+    - mycluster.192.168.122.145.sslip.io
+    serviceCidr: 10.96.0.0/24
+    podCidr: 10.244.0.0/16
+    dnsServiceIPs:
+    - 10.96.0.10
+  addons:
+    coreDNS: {}
+    kubeProxy: {}
+    konnectivity:
+      server:
+        port: 8132
+        resources: {}
+```
+
+certSANs is using sslip.io as a hack to avoid setting up a domain. In production, this would be the domain that points to your kamaji cluster. Locally it should just be something that resolves to the kamaji server (e.g. the Kairos VM of the kamaji cluster).
+
+When your tenant cluster is created, you will need to [download the kubeconfig](https://kamaji.clastix.io/getting-started/kamaji-aws/#working-with-tenant-control-plane) to talk to it:
+
+```bash
+kubectl get secrets -n ${TENANT_NAMESPACE} ${TENANT_NAME}-admin-kubeconfig -o json \
+  | jq -r '.data["admin.conf"]' \
+  | base64 --decode \
+  > ${TENANT_NAMESPACE}-${TENANT_NAME}.kubeconfig
+```
+
+(replace with the values matching your kamaji cluster).
+
+Then you will need kubeadmin in order to get the connection details to that cluster.
+You can install it following the [documentation](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/). E.g. with something like:
+
+```bash
+RELEASE="$(curl -sSL https://dl.k8s.io/release/stable.txt)"
+ARCH="amd64"
+cd $DOWNLOAD_DIR
+sudo curl -L --remote-name-all https://dl.k8s.io/release/${RELEASE}/bin/linux/${ARCH}/kubeadm
+sudo chmod +x kubeadm
+```
+
+Finally get the needed values with:
+
+```bash
+kubeadm --kubeconfig=default-mycluster.kubeconfig token create --print-join-command
+```
+
+where `default-mycluster.kubeconfig` is the kubeconfig of your tenant cluster, which we recovered above.
+
+This command, will print something like:
+
+```
+kubeadm join <JOIN_URL> --token <JOIN_TOKEN> --discovery-token-ca-cert-hash <JOIN_TOKEN_CACERT_HASH>
+```
+
+Note down those values because you are going to need them in the next step.
+
+## Create the Kairos config for the workers
+
+If you are using the clastix hosted kamaji server, go to the cluster you created and click on "Add" button in the "List of Nodes" section.
+This will open a modal showing you:
 
 - the JOIN_URL
 - the JOIN_TOKEN
 - the JOIN_TOKEN_CACERT_HASH
 
-Copy the `config.yaml.tmpl` from this repository to `config.yaml` and update the `cluster:` section with the values you got from Kamaji.
+If instead, you deployed your own kamaji, you should have noted down those values already.
+
+Copy the `config.yaml.tmpl` from this repository to `config.yaml` and update the `cluster:` section with those values.
 
 Also make sure you update the user configuration to get the user you want created. See the [Kairos documentation](https://kairos.io/v3.4.2/docs/reference/) for more options.
 
