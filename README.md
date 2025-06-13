@@ -19,7 +19,7 @@ docker build -t kairos-kubeadm .
 or use one of the images publishe by the pipelines of this repo. E.g.
 
 ```
-quay.io/jimmykarily/kairos-kubeadm:v0.0.1
+quay.io/jimmykarily/kairos-kubeadm:v0.0.2
 ```
 
 Choose a tag here: https://quay.io/repository/jimmykarily/kairos-kubeadm
@@ -31,7 +31,7 @@ docker run --rm -it \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v $PWD/build:/build \
   quay.io/kairos/auroraboot:latest \
-    --debug build-iso --output /build  docker://quay.io/jimmykarily/kairos-kubeadm:v0.0.1
+    --debug build-iso --output /build  docker://quay.io/jimmykarily/kairos-kubeadm:v0.0.2
 ```
 
 (use the image you've selected or built in the previous step)
@@ -44,7 +44,7 @@ docker run --rm -it \
   -v $PWD/config.yaml:/config.yaml \
   -v $PWD/build:/build \
   quay.io/kairos/auroraboot:latest \
-    --debug build-iso --cloud-config /config.yaml --output /build  docker://quay.io/jimmykarily/kairos-kubeadm:v0.0.1
+    --debug build-iso --cloud-config /config.yaml --output /build  docker://quay.io/jimmykarily/kairos-kubeadm:v0.0.2
 ```
 
 > [!IMPORTANT]
