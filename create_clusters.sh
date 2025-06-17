@@ -20,7 +20,7 @@ spec:
   dataStore: default
   controlPlane:
     deployment:
-      replicas: 2
+      replicas: 1
     service:
       serviceType: LoadBalancer
   kubernetes:
