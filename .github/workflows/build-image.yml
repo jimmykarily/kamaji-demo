@@ -50,3 +50,60 @@ jobs:
           VERSION=${{ github.ref_name }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+  build-iso:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Needed for uploading release assets
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Generate ISO with auroraboot
+        run: |
+          mkdir -p build
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v ${{ github.workspace }}/build:/build \
+            quay.io/kairos/auroraboot:latest \
+            --debug build-iso --output /build docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+
+      - name: Get release info
+        id: get_release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = context.ref.replace('refs/tags/', '');
+            const releases = await github.rest.repos.listReleases({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            const release = releases.data.find(r => r.tag_name === tag);
+            if (release) {
+              core.setOutput('upload_url', release.upload_url);
+            } else {
+              const newRelease = await github.rest.repos.createRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag_name: tag,
+                name: tag,
+                draft: false,
+                prerelease: false,
+              });
+              core.setOutput('upload_url', newRelease.data.upload_url);
+            }
+
+      - name: Upload ISO to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ./build/*.iso
+          asset_name: kairos-worker-${{ github.ref_name }}.iso
+          asset_content_type: application/octet-stream
