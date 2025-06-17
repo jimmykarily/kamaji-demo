@@ -66,6 +66,14 @@ You can follow the documentation: [kamaji on your own infrastructure](https://ka
 You can use the released Kairos artifacts to create a cluster. You don't need a kubeadm cluster, k3s and k0s will do. Use a config like the `kamaji-config.yaml` from this repository,
 making sure you adapt the users section, to include your own SSH keys.
 
+When you create a new tenant control plane, kamaji will use the IP address of the kamaji ingress unless you explicitly specify `spec.kubernetes.networkProfile.address` on the
+Tenant resource manifest. If you are deploying on some public cloud (e.g. AWS), it's likely that the VMs IP address is not the one automatically assigned to the ingress resource (it would
+be an internal IP address instead). You can annotate the k3s node to make sure klipper-lb assigns the external IP address like so:
+
+```
+kubectl annotate node kamaji-9236 k3s.io/external-ip=<your VMs IP address here>
+```
+
 After the cluster is up and running, create a "tenant control plane" as per the docs: https://kamaji.clastix.io/getting-started/kamaji-generic/#tenant-control-plane
 
 Here is an example manifest:
@@ -83,41 +91,24 @@ spec:
   controlPlane:
     deployment:
       replicas: 3
-      additionalMetadata:
-        labels:
-          tenant.clastix.io: mycluster
-      extraArgs:
-        apiServer: []
-        controllerManager: []
-        scheduler: []
-      resources: {}
     service:
-      additionalMetadata:
-        labels:
-          tenant.clastix.io: mycluster
       serviceType: LoadBalancer
   kubernetes:
     version: v1.30.2
     kubelet:
       cgroupfs: systemd
-    admissionControllers:
-      - ResourceQuota
-      - LimitRanger
   networkProfile:
     port: 8000
-    certSANs:
-    - mycluster.192.168.122.145.sslip.io
-    serviceCidr: 10.96.0.0/24
-    podCidr: 10.244.0.0/16
-    dnsServiceIPs:
-    - 10.96.0.10
+    # certSANs:
+    # - mycluster.192.168.122.145.sslip.io
+    # serviceCidr: 10.96.0.0/24
+    # podCidr: 10.244.0.0/16
+    # dnsServiceIPs:
+    # - 10.96.0.10
   addons:
-    coreDNS: {}
-    kubeProxy: {}
     konnectivity:
       server:
         port: 8132
-        resources: {}
 ```
 
 certSANs is using sslip.io as a hack to avoid setting up a domain. In production, this would be the domain that points to your kamaji cluster. Locally it should just be something that resolves to the kamaji server (e.g. the Kairos VM of the kamaji cluster).
