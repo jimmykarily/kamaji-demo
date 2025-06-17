@@ -4,14 +4,22 @@ hostname: kamaji-{{ trunc 4 .MachineID }}
 
 users:
 - name: kairos
-  passwd: kairos
   groups:
   - admin
   ssh_authorized_keys:
   - github:jimmykarily
+  - github:mauromorales
+  - github:mudler
+  - github:Itxaka
+
+reset:
+  system:
+    uri: quay.io/kairos/ubuntu:24.04-standard-amd64-generic-v3.4.2-k3sv1.31.7-k3s1
 
 k3s:
   enabled: true
+  args:
+    - --tls-san "cnd-italy-2025.kairos.io"
 
 write_files:
 - path: /var/lib/rancher/k3s/server/manifests/kamaji.yaml
@@ -49,3 +57,38 @@ write_files:
           repo: https://clastix.github.io/charts
           chart: kamaji
           targetNamespace: kamaji
+
+        ---
+        apiVersion: v1
+        kind: Secret
+        type: Opaque
+        metadata:
+          name: kamaji-console
+          namespace: kamaji
+        stringData:
+          # Credentials to login into console
+          ADMIN_EMAIL: <the admin email here>
+          ADMIN_PASSWORD: <the admin password here>
+          # Secret used to sign the browser session
+          JWT_SECRET: <create a secret with "openssl rand -hex 32">
+          # URL where the console is accessible: https://<hostname>/ui
+          NEXTAUTH_URL: https://cnd-italy-2025.kairos.io
+
+        ---
+        apiVersion: helm.cattle.io/v1
+        kind: HelmChart
+        metadata:
+          name: kamaji-console
+          namespace: kamaji
+        spec:
+          repo: https://clastix.github.io/charts
+          chart: kamaji-console
+          targetNamespace: kamaji
+          valuesContent: |-
+            ingress:
+              enabled: true
+              hosts:
+                - host: cnd-italy-2025.kairos.io
+                  paths:
+                    - path: /
+                      pathType: ImplementationSpecific

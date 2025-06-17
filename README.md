@@ -111,7 +111,7 @@ spec:
         port: 8132
 ```
 
-certSANs is using sslip.io as a hack to avoid setting up a domain. In production, this would be the domain that points to your kamaji cluster. Locally it should just be something that resolves to the kamaji server (e.g. the Kairos VM of the kamaji cluster).
+For the purpose of the workshop, the `create_clusters.sh` script can be used to create "N" clusters at once.
 
 When your tenant cluster is created, you will need to [download the kubeconfig](https://kamaji.clastix.io/getting-started/kamaji-aws/#working-with-tenant-control-plane) to talk to it:
 
@@ -123,6 +123,8 @@ kubectl get secrets -n ${TENANT_NAMESPACE} ${TENANT_NAME}-admin-kubeconfig -o js
 ```
 
 (replace with the values matching your kamaji cluster).
+
+The kubeconfig can also be downloaded from the kamaji console UI.
 
 Then you will need kubeadmin in order to get the connection details to that cluster.
 You can install it following the [documentation](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/). E.g. with something like:
