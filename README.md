@@ -50,6 +50,8 @@ docker run --rm -it \
 > [!IMPORTANT]
 > This will embed the connection details too, which means the image will only be useful for one specific cluster.
 
+You can also use the released ISO from this repository's releases: https://github.com/jimmykarily/kamaji-demo/releases
+
 ## Create a Kamaji cluster
 
 There are 2 ways to get access to a kamaji instance. See the next 2 sections for each one.
@@ -181,6 +183,12 @@ Your worker won't become "Ready" until you got a [Container Network Interface (C
 If you used clastix kamaji instance, you just had to enable the cilium add-on from the web interface.
 If you deployed your own kamaji instance, you need to deploy cilium manually on the worker.
 Follow the instructions here: https://docs.cilium.io/en/stable/gettingstarted/k8s-install-default/#install-the-cilium-cli
+
+Something like this should work (provided your KUBECONFIG points to the tenant cluster):
+
+```
+cilium install --version 1.17.4
+```
 
 ## Debugging
 
