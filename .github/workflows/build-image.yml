@@ -98,12 +98,22 @@ jobs:
               core.setOutput('upload_url', newRelease.data.upload_url);
             }
 
+      - name: Find ISO file
+        id: find_iso
+        run: |
+          ISO_PATH=$(find ./build -maxdepth 1 -name '*.iso' | head -n 1)
+          if [ -z "$ISO_PATH" ]; then
+            echo "No ISO file found!"
+            exit 1
+          fi
+          echo "iso_path=$ISO_PATH" >> $GITHUB_OUTPUT
+
       - name: Upload ISO to release
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ./build/*.iso
+          asset_path: ${{ steps.find_iso.outputs.iso_path }}
           asset_name: kairos-worker-${{ github.ref_name }}.iso
           asset_content_type: application/octet-stream
