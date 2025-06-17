@@ -57,6 +57,14 @@ write_files:
           repo: https://clastix.github.io/charts
           chart: kamaji
           targetNamespace: kamaji
+          valuesContent: |-
+            resources:
+              limits:
+                cpu: 1000m
+                memory: 1000Mi
+              requests:
+                cpu: 500m
+                memory: 500Mi
 
         ---
         apiVersion: v1
