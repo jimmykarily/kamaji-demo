@@ -16,7 +16,7 @@ ARG MODEL=generic
 ARG TRUSTED_BOOT=false
 ARG VERSION=v0.0.1
 
- RUN apt-get update && apt-get install -y curl apparmor-utils
+RUN apt-get update && apt-get install -y curl apparmor-utils
 
 COPY config.toml /etc/containerd/config.toml
 COPY scripts/* /opt/kubeadm/scripts/
