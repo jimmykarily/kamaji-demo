@@ -166,7 +166,7 @@ This will open a modal showing you:
 
 If instead, you deployed your own kamaji, you should have noted down those values already.
 
-Copy the `config.yaml.tmpl` from this repository to `config.yaml` and update the `cluster:` section with those values.
+Copy the [config.yaml.tmpl](/config.yaml.tmpl) from this repository to `config.yaml` and update the `cluster:` section with those values.
 
 Also make sure you update the user configuration to get the user you want created. See the [Kairos documentation](https://kairos.io/v3.4.2/docs/reference/) for more options.
 
