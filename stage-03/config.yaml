@@ -1,0 +1,93 @@
+#cloud-config
+
+hostname: kamaji-{{ trunc 4 .MachineID }}
+
+users:
+- name: kairos
+  groups:
+  - admin
+  ssh_authorized_keys:
+  - github:<YOUR_GITHUB_USERNAME>
+
+k3s:
+  enabled: true
+
+write_files:
+- path: /var/lib/rancher/k3s/server/manifests/kamaji.yaml
+  permissions: "0644"
+  content: |
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: kamaji
+        ---
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: cert-manager
+        ---
+        apiVersion: helm.cattle.io/v1
+        kind: HelmChart
+        metadata:
+          name: cert-manager
+          namespace: cert-manager
+        spec:
+          repo: https://charts.jetstack.io 
+          chart: cert-manager
+          targetNamespace: cert-manager
+          valuesContent: |-
+            installCRDs: true
+
+        ---
+        apiVersion: helm.cattle.io/v1
+        kind: HelmChart
+        metadata:
+          name: kamaji
+          namespace: kamaji
+        spec:
+          repo: https://clastix.github.io/charts
+          chart: kamaji
+          targetNamespace: kamaji
+          valuesContent: |-
+            resources:
+              limits:
+                cpu: 1000m
+                memory: 1000Mi
+              requests:
+                cpu: 500m
+                memory: 500Mi
+
+        ---
+        apiVersion: v1
+        kind: Secret
+        type: Opaque
+        metadata:
+          name: kamaji-console
+          namespace: kamaji
+        stringData:
+          # Credentials to login into console
+          ADMIN_EMAIL: <ADMIN_EMAIL>
+          ADMIN_PASSWORD: <ADMIN_PASSWORD>
+          # Secret used to sign the browser session
+          JWT_SECRET: <JWT_SECRET> # You can create one using `openssl rand -hex 32`
+          # URL where the console is accessible: https://<YOUR_VM_IP>/ui
+          NEXTAUTH_URL: https://<YOUR_VM_IP>.sslip.io/
+
+        ---
+        apiVersion: helm.cattle.io/v1
+        kind: HelmChart
+        metadata:
+          name: kamaji-console
+          namespace: kamaji
+        spec:
+          repo: https://clastix.github.io/charts
+          chart: kamaji-console
+          targetNamespace: kamaji
+          valuesContent: |-
+            ingress:
+              enabled: true
+              hosts:
+                - host: <YOUR_VM_IP>.sslip.io
+                  paths:
+                    - path: /
+                      pathType: ImplementationSpecific
